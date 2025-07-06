@@ -1,40 +1,47 @@
-version: "3.6"
+version: "3"
 
 services:
   redis:
     image: redis:alpine
     restart: always
 
-  front:
-    image: mailu/nginx:1.9
+  resolver:
+    image: ghcr.io/mailu/unbound:2024.06
     restart: always
-    env_file: .env
-    depends_on:
-      - resolver
+    networks:
+      default:
+        ipv4_address: 172.18.0.2
+
+  front:
+    image: ghcr.io/mailu/nginx:2024.06
+    restart: always
+    env_file: mailu.env
     labels:
-      - "coolify.output.domain=mail.dorbenabu.com"
       - "traefik.enable=true"
       - "traefik.http.routers.mailu.rule=Host(`mail.dorbenabu.com`)"
       - "traefik.http.routers.mailu.entrypoints=web"
-      - "traefik.http.routers.mailu.entrypoints=websecure"
-      - "traefik.http.routers.mailu.tls=true"
       - "traefik.http.services.mailu.loadbalancer.server.port=80"
+    depends_on:
+      - resolver
 
   admin:
-    image: mailu/admin:1.9
+    image: ghcr.io/mailu/admin:2024.06
     restart: always
-    env_file: .env
+    env_file: mailu.env
+    depends_on:
+      - resolver
+      - redis
 
   smtp:
-    image: mailu/postfix:1.9
+    image: ghcr.io/mailu/postfix:2024.06
     restart: always
-    env_file: .env
+    env_file: mailu.env
 
   imap:
-    image: mailu/dovecot:1.9
+    image: ghcr.io/mailu/dovecot:2024.06
     restart: always
-    env_file: .env
+    env_file: mailu.env
 
-  resolver:
-    image: mailu/unbound:1.9
-    restart: always
+networks:
+  default:
+    driver: bridge
