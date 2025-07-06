@@ -40,6 +40,8 @@ services:
     image: ghcr.io/mailu/admin:1.9
     restart: always
     env_file: .env
+    environment:
+      - PASSWORD=StrongPassword123
     volumes:
       - "/mailu/data:/data"
     depends_on:
