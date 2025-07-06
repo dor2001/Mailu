@@ -1,0 +1,50 @@
+version: '2'
+
+services:
+  front:
+    image: mailu/nginx:1.9
+    restart: always
+    env_file: .env
+    ports:
+      - "25:25"      # SMTP
+      - "587:587"    # Submission
+      - "143:143"    # IMAP
+      - "993:993"    # IMAPS
+      - "80:80"      # HTTP (admin)
+      - "443:443"    # HTTPS (admin)
+    volumes:
+      - "/mailu/data:/data"
+      - "/mailu/certs:/certs"
+    depends_on:
+      - resolver
+
+  resolver:
+    image: mailu/unbound:1.9
+    restart: always
+
+  imap:
+    image: mailu/dovecot:1.9
+    restart: always
+    env_file: .env
+    volumes:
+      - "/mailu/data:/data"
+
+  smtp:
+    image: mailu/postfix:1.9
+    restart: always
+    env_file: .env
+    volumes:
+      - "/mailu/data:/data"
+
+  admin:
+    image: mailu/admin:1.9
+    restart: always
+    env_file: .env
+    volumes:
+      - "/mailu/data:/data"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    restart: always
