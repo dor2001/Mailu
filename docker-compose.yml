@@ -5,12 +5,10 @@ services:
     image: redis:alpine
     restart: always
 
-  resolver:
-    image: ghcr.io/mailu/unbound:2024.06
-    restart: always
-    networks:
-      default:
-        ipv4_address: 172.18.0.2
+resolver:
+  image: ghcr.io/mailu/unbound:2024.06
+  restart: always
+
 
   front:
     image: ghcr.io/mailu/nginx:2024.06
