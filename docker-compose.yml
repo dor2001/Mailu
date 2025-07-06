@@ -1,52 +1,41 @@
-version: '2'
+version: "3"
 
 services:
-  front:
-    image: ghcr.io/mailu/nginx:1.9
-    restart: always
-    env_file: .env
-    ports:
-      - "25:25"
-      - "587:587"
-      - "143:143"
-      - "993:993"
-      - "80:80"
-      - "443:443"
-    volumes:
-      - "/mailu/data:/data"
-      - "/mailu/certs:/certs"
-    depends_on:
-      - resolver
-
-  resolver:
-    image: ghcr.io/mailu/unbound:1.9
-    restart: always
-
-  imap:
-    image: ghcr.io/mailu/dovecot:1.9
-    restart: always
-    env_file: .env
-    volumes:
-      - "/mailu/data:/data"
-
-  smtp:
-    image: ghcr.io/mailu/postfix:1.9
-    restart: always
-    env_file: .env
-    volumes:
-      - "/mailu/data:/data"
-
-  admin:
-    image: ghcr.io/mailu/admin:1.9
-    restart: always
-    env_file: .env
-    environment:
-      - PASSWORD=StrongPassword123
-    volumes:
-      - "/mailu/data:/data"
-    depends_on:
-      - redis
-
   redis:
     image: redis:alpine
+    restart: always
+
+  front:
+    image: mailu/nginx:1.9
+    restart: always
+    environment:
+      TZ: Asia/Jerusalem
+    depends_on:
+      - resolver
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailu.rule=Host(`mail.dorbenabu.com`)"
+      - "traefik.http.routers.mailu.entrypoints=web"
+      - "traefik.http.services.mailu.loadbalancer.server.port=80"
+
+  admin:
+    image: mailu/admin:1.9
+    restart: always
+    environment:
+      TZ: Asia/Jerusalem
+
+  smtp:
+    image: mailu/postfix:1.9
+    restart: always
+    environment:
+      TZ: Asia/Jerusalem
+
+  imap:
+    image: mailu/dovecot:1.9
+    restart: always
+    environment:
+      TZ: Asia/Jerusalem
+
+  resolver:
+    image: mailu/unbound:1.9
     restart: always
